@@ -71,8 +71,3 @@ type root.txt   # [REDACTED]
 - 🐚 Shell obtained with full SYSTEM privileges
 - 🧠 No privilege escalation needed — direct root-level access
 - 🔐 Flags removed to comply with Hack The Box rules
-
----
-
-✅ Tested and documented by Alessio Martinelli  
-📁 Repository: [htb-writeups](https://github.com/<tuo-user>/htb-writeups)
